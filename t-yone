@@ -1,0 +1,109 @@
+/**
+ * Copyright(c) 2013 NTT DOCOMO, INC. All Rights Reserved.
+ */
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+
+import javax.naming.spi.DirStateFactory.Result;
+
+import jp.ne.nttdocomo.spm.api.common.exception.SdkException;
+import jp.ne.nttdocomo.spm.api.common.exception.ServerException;
+import jp.ne.nttdocomo.spm.api.common.http.AuthApiKey;
+//import jp.ne.nttdocomo.spm.api.common.http.ProxyInfo;
+import jp.ne.nttdocomo.spm.api.knowledge.param.KnowledgeRequestParam;
+import jp.ne.nttdocomo.spm.api.knowledge.KnowledgeSearch;
+import jp.ne.nttdocomo.spm.api.knowledge.data.KnowledgeAnswerData;
+import jp.ne.nttdocomo.spm.api.knowledge.data.KnowledgeMessageData;
+import jp.ne.nttdocomo.spm.api.knowledge.data.KnowledgeResultData;
+
+/**
+ * 知識Q&Aサンプルコード
+ */
+public class QA {
+
+	public static void main(String[] args) throws IOException {
+
+         
+        try {
+			// 開発者ポータルから取得したAPIキーの設定
+			AuthApiKey.initializeAuth("4476456b6a7154596b656b53534d733343664658344f466a6e4761783437467467364a7658766136393943");
+
+			// プロキシの設定param
+			// プロキシを使用しない場合はコメントにしてください
+			//ProxyInfo.initializeProxy("proxyhost.co.jp", 80);
+			
+	
+			// 知識Q&A パラメータクラスを生成して、質問を設定する
+			KnowledgeRequestParam param = new KnowledgeRequestParam();
+			param.setQuestion("太平洋戦争が起きた年は");
+
+			// 知識Q&A 検索クラスの生成して、検索を実行する
+			KnowledgeSearch search = new KnowledgeSearch();
+			KnowledgeResultData resultData = search.request(param);
+			
+			
+			
+			  //出力先を作成する
+            FileWriter fw = new FileWriter ( "src\\test.html"); 
+            PrintWriter pw = new PrintWriter(new BufferedWriter(fw));
+            
+         // 検索結果の出力
+			System.out.println("レスポンスコード : " + resultData.getCode());
+			
+			// 返却するメッセージに関する情報の出力
+			pw.println("<html>");
+			pw.println("<head>");
+			pw.println("</head>");
+			pw.println("<body>");
+			pw.print("<h1>");
+			
+			pw.print("かきこんでコンシェル");
+			pw.print("</h1>");
+			pw.print("<u1>");
+			
+			
+			KnowledgeMessageData messageData = resultData.getMessage();
+			pw.print("<li>");pw.print("  答えは・・・" +  messageData.getTextForDisplay());
+			pw.print("</li>");
+			
+			
+			pw.print("<li>");
+			pw.print(" こたえは・・・ " + messageData.getTextForSpeech());
+			pw.print("</li>");
+
+			// 回答リストの出力
+			ArrayList<KnowledgeAnswerData> answerList = resultData.getAnswers();
+			for (KnowledgeAnswerData answerData : answerList) {
+				pw.println();
+				pw.println("<cite>");
+				pw.println("回答データ");
+				 pw.println("  順位 : " + answerData.getRank());
+				 pw.println("  回答テキスト : " + answerData.getAnswerText());
+				 pw.println("  引用元テキスト : " + answerData.getLinkText());
+				 pw.println("  引用元URL : <A Href=\"" + answerData.getLinkUrl() + ">wikipedia </A>");
+				 pw.print("</cite>");
+			}
+			
+			//ファイルに書き出す
+            pw.close();
+
+            //終了メッセージを画面に出力する
+              System.out.println("出力が完了しました。");
+            
+		} catch (SdkException e) {
+			e.printStackTrace();
+			System.out.println("エラーコード : " + e.getErrorCode());
+			
+			System.out.println("エラーメッセージ: " + e.getMessage());
+		} catch (ServerException e) {
+			e.printStackTrace();
+			System.out.println("エラーコード : " + e.getErrorCode());
+			System.out.println("エラーメッセージ: " + e.getMessage());
+		}
+		}
+	}
+
